@@ -7,4 +7,5 @@ export default [
   route('login', 'routes/login.tsx'),
   route('account', 'routes/account.tsx'),
   route('chat', 'routes/chat.tsx'),
+  route('bee', 'routes/bee.tsx'),
 ] satisfies RouteConfig;
