@@ -31,6 +31,21 @@ type ApiKey = {
   modelAllowlist: string[];
 };
 type NewApiKey = { id: string; name: string; key: string; createdAt: string };
+type Job = {
+  id: string;
+  status: string;
+  modelId: string;
+  provider: string;
+  estimatedMaxXbzzWei: string;
+  actualXbzzWei: string | null;
+  promptTokens: number | null;
+  completionTokens: number | null;
+  createdAt: string;
+  ackedAt: string | null;
+  deliveredAt: string | null;
+  claimedAt: string | null;
+  errorMessage: string | null;
+};
 
 export function meta() {
   return [{ title: 'Account · t4t Gateway' }];
@@ -75,6 +90,7 @@ export default function Account() {
   const [account, setAccount] = useState<Account | null>(null);
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
   const [keys, setKeys] = useState<ApiKey[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newKeyName, setNewKeyName] = useState('');
@@ -90,16 +106,18 @@ export default function Account() {
     }
     (async () => {
       try {
-        const [u, a, l, k] = await Promise.all([
+        const [u, a, l, k, j] = await Promise.all([
           api<User>('/users/me'),
           api<Account>('/accounts/me'),
           api<LedgerEntry[]>('/accounts/me/ledger'),
           api<ApiKey[]>('/api-keys'),
+          api<Job[]>('/v1/jobs?limit=50'),
         ]);
         setUser(u);
         setAccount(a);
         setLedger(l);
         setKeys(k);
+        setJobs(j);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
@@ -251,6 +269,63 @@ export default function Account() {
               </li>
             ))}
           </ul>
+        )}
+      </section>
+
+      <section className='mt-8'>
+        <h2 className='text-lg font-semibold'>Recent jobs</h2>
+        {jobs.length === 0 ? (
+          <p className='mt-3 text-sm text-neutral-500'>No jobs yet.</p>
+        ) : (
+          <div className='mt-3 overflow-x-auto rounded-lg border border-neutral-200 bg-white'>
+            <table className='min-w-full text-sm'>
+              <thead className='border-b border-neutral-200 bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500'>
+                <tr>
+                  <th className='px-4 py-2 font-medium'>Model</th>
+                  <th className='px-4 py-2 font-medium'>Status</th>
+                  <th className='px-4 py-2 font-medium'>Provider</th>
+                  <th className='px-4 py-2 font-medium'>Tokens</th>
+                  <th className='px-4 py-2 text-right font-medium'>xBZZ</th>
+                  <th className='px-4 py-2 font-medium'>When</th>
+                </tr>
+              </thead>
+              <tbody className='divide-y divide-neutral-200'>
+                {jobs.slice(0, 25).map((j) => {
+                  const tokens =
+                    j.promptTokens !== null || j.completionTokens !== null
+                      ? `${j.promptTokens ?? '—'} / ${j.completionTokens ?? '—'}`
+                      : '—';
+                  const xbzz = j.actualXbzzWei
+                    ? formatXbzz(j.actualXbzzWei)
+                    : `~${formatXbzz(j.estimatedMaxXbzzWei)}`;
+                  const statusColor =
+                    j.status === 'claimed' || j.status === 'delivered'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : j.status === 'failed' || j.status === 'cancelled'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-neutral-100 text-neutral-700';
+                  return (
+                    <tr key={j.id}>
+                      <td className='px-4 py-2 font-mono text-xs'>{j.modelId}</td>
+                      <td className='px-4 py-2'>
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColor}`}>
+                          {j.status}
+                        </span>
+                      </td>
+                      <td className='px-4 py-2 font-mono text-xs text-neutral-500'>
+                        {j.provider.slice(0, 6)}…{j.provider.slice(-4)}
+                      </td>
+                      <td className='px-4 py-2 font-mono text-xs'>{tokens}</td>
+                      <td className='px-4 py-2 text-right font-mono text-xs'>{xbzz}</td>
+                      <td className='px-4 py-2 text-xs text-neutral-500'>
+                        {new Date(j.createdAt).toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
 
