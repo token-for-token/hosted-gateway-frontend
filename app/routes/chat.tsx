@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Nav } from '~/components/nav';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'https://api.t4t-gateway.com';
 
@@ -100,15 +101,9 @@ export default function Chat() {
 
   return (
     <main className='flex min-h-screen flex-col'>
-      <header className='border-b border-neutral-200 bg-white px-6 py-3'>
-        <div className='mx-auto flex max-w-3xl items-center justify-between'>
-          <div className='flex items-center gap-3'>
-            <a href='/account' className='text-sm font-medium text-neutral-700 hover:underline'>
-              ← Account
-            </a>
-            <span className='text-neutral-300'>|</span>
-            <h1 className='text-sm font-semibold'>Chat</h1>
-          </div>
+      <Nav />
+      <div className='border-b border-neutral-200 bg-white px-6 py-2'>
+        <div className='mx-auto flex max-w-3xl items-center justify-end'>
           <select
             aria-label='Model'
             value={model}
@@ -125,7 +120,7 @@ export default function Chat() {
             ))}
           </select>
         </div>
-      </header>
+      </div>
 
       <div
         ref={scrollRef}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Nav } from '~/components/nav';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'https://api.t4t-gateway.com';
 
@@ -100,14 +101,19 @@ export default function BeePage() {
 
   if (loading) {
     return (
-      <main className='flex min-h-screen items-center justify-center'>
-        <p className='text-sm text-neutral-600'>Loading Bee stats…</p>
-      </main>
+      <>
+        <Nav />
+        <main className='flex min-h-[60vh] items-center justify-center'>
+          <p className='text-sm text-neutral-600'>Loading Bee stats…</p>
+        </main>
+      </>
     );
   }
 
   return (
-    <main className='mx-auto min-h-screen max-w-3xl px-6 py-12'>
+    <>
+      <Nav />
+      <main className='mx-auto max-w-3xl px-6 py-10'>
       <h1 className='text-2xl font-semibold'>Bee node</h1>
       <p className='mt-1 text-sm text-neutral-600'>Read-only status of the operator's Bee node.</p>
 
@@ -198,5 +204,6 @@ export default function BeePage() {
         </Card>
       </div>
     </main>
+    </>
   );
 }
